@@ -53,7 +53,7 @@ export class GameRoom extends DurableObject {
       if (!response.ok) return fallback();
       const result = await response.json() as { status?: string; output?: { text?: unknown } };
       if (result.status !== 'completed' || typeof result.output?.text !== 'string') return fallback();
-      const prompt = result.output.text.replace(/^\\s*[`"']+|[`"']+\\s*$/g, '').trim();
+      const prompt = result.output.text.trim().replace(/^[`"']+|[`"']+$/g, '').trim();
       if (!prompt || prompt.length > 240 || prompt.length < 12) return fallback();
       return { prompt, source: 'octopus', index: -1 };
     } catch { return fallback(); }
