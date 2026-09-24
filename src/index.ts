@@ -1,3 +1,4 @@
+import { DurableObject } from 'cloudflare:workers';
 import { Hono } from 'hono';
 type Env = { ROOM: DurableObjectNamespace; OCTOPUS_ENGINE_URL?: string };
 type Role = 'Feuch' | 'Natasha' | 'Marty' | 'Nikolas' | 'Slobodane';
