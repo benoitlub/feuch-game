@@ -87,7 +87,7 @@ export class GameRoom extends DurableObject {
       else if (m.type === 'start') {
         if (me.id !== s.hostId) return this.error(ws, 'Réservé à l’hôte');
         if (s.phase !== 'lobby' || s.players.length < 3 || s.players.some(p => !p.ready) || s.players.length > 5) return this.error(ws, 'Il faut 3 à 5 joueurs prêts');
-        const roles: Role[] = ['Feuch', 'Natasha', 'Marty', 'Nikolas', 'Slobodane'];
+        const roles: Role[] = (['Feuch', 'Natasha', 'Marty', 'Slobodane', 'Nikolas'] as Role[]).slice(0, s.players.length);
         for (let i = roles.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [roles[i], roles[j]] = [roles[j], roles[i]]; }
         s.players.forEach((p, i) => { p.role = roles[i]; p.camp = p.role === 'Feuch' || p.role === 'Slobodane' ? 'feuch' : 'neutral'; });
         s.phase = 'night'; s.round = 1; s.conversionUsed = false; s.challenge = null; s.challengeUsed = []; s.vice = {}; s.shields = [];
@@ -116,12 +116,12 @@ export class GameRoom extends DurableObject {
         if (s.conversionUsed || !s.nightTarget || m.target !== s.nightTarget) return this.error(ws, 'Cible nocturne requise ou conversion déjà tentée');
         const target = s.players.find(p => p.id === m.target);
         if (!target) return this.error(ws, 'Cible introuvable');
+        if (target.camp === 'feuch') return this.error(ws, 'Cette cible est déjà Feuchienne');
         s.conversionUsed = true;
         if (s.linked.includes(target.id) || s.shields.includes(target.id)) {
           this.send(ws, { type: 'notice', message: 'Conversion bloquée par une protection.' });
           return void (await this.persist(), this.broadcast());
         }
-        if (target.camp === 'feuch') return this.error(ws, 'Cette cible est déjà Feuchienne');
         target.camp = 'feuch';
         this.send(ws, { type: 'notice', message: 'Conversion réussie : ' + target.name });
         if (s.players.every(p => p.camp === 'feuch')) { s.phase = 'finished'; s.winner = 'feuch'; }
